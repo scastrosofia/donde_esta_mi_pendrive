@@ -10,6 +10,27 @@
   <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
+  <!-- Mobile orientation prompt (Rotate to landscape) -->
+  <div id="rotate-modal" class="rotate-modal hidden" role="dialog" aria-modal="true" aria-labelledby="rotate-title">
+    <div class="rotate-card">
+      <div class="rotate-icon-container">
+        <div class="phone-anim">
+          <div class="phone-notch"></div>
+          <div class="phone-display"></div>
+        </div>
+        <div class="arrow-anim">
+          <svg viewBox="0 0 72 72" class="arrow-svg" aria-hidden="true">
+            <path d="M 36 10 A 26 26 0 1 1 10 32" fill="none" stroke="#d63434" stroke-width="5" stroke-linecap="round" />
+            <polygon points="3,30 17,30 10,44" fill="#d63434" stroke="#16161c" stroke-width="2" stroke-linejoin="round"/>
+          </svg>
+        </div>
+      </div>
+      <h2 id="rotate-title" class="rotate-title">Girá tu celular para mayor comfort</h2>
+      <p class="rotate-subtitle">Jugá en horizontal para ver todo el despacho</p>
+      <button id="rotate-dismiss-btn" class="rotate-btn" type="button">CONTINUAR</button>
+    </div>
+  </div>
+
   <div id="app">
     <button id="sound-toggle" class="sound-toggle" title="Silenciar sonido" aria-label="Silenciar sonido">🔊</button>
     <header class="hud" id="hud">

@@ -33,6 +33,8 @@
     overlayText: document.getElementById('overlay-text'),
     overlayBtn: document.getElementById('overlay-btn'),
     soundBtn: document.getElementById('sound-toggle'),
+    rotateModal: document.getElementById('rotate-modal'),
+    rotateDismissBtn: document.getElementById('rotate-dismiss-btn'),
   };
 
   const SPRITE_SCALE = 6; // 10 x 16 grid -> 60 x 96 canvas
@@ -409,10 +411,52 @@
 
   els.dialogue.addEventListener('click', advanceDialogue);
 
+  /* ---------------- mobile orientation prompt ---------------- */
+
+  let rotatePromptDismissed = false;
+
+  function shouldShowRotatePrompt() {
+    if (rotatePromptDismissed) return false;
+    const isPortrait = window.innerHeight > window.innerWidth;
+    const isMobileUA = /Android|iPhone|iPad|iPod|webOS|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+    const isTouchMobile = (navigator.maxTouchPoints > 0 && Math.min(window.innerWidth, window.innerHeight) <= 700);
+    const isSmallScreen = window.innerWidth <= 850;
+    return isPortrait && (isMobileUA || isTouchMobile || isSmallScreen);
+  }
+
+  function updateOrientationPrompt() {
+    if (!els.rotateModal) return;
+    if (shouldShowRotatePrompt()) {
+      els.rotateModal.classList.remove('hidden');
+    } else {
+      els.rotateModal.classList.add('hidden');
+    }
+  }
+
+  if (els.rotateDismissBtn) {
+    els.rotateDismissBtn.addEventListener('click', function () {
+      rotatePromptDismissed = true;
+      if (els.rotateModal) els.rotateModal.classList.add('hidden');
+    });
+  }
+
+  if (els.rotateModal) {
+    els.rotateModal.addEventListener('click', function (e) {
+      if (e.target === els.rotateModal) {
+        rotatePromptDismissed = true;
+        els.rotateModal.classList.add('hidden');
+      }
+    });
+  }
+
+  window.addEventListener('resize', updateOrientationPrompt);
+  window.addEventListener('orientationchange', updateOrientationPrompt);
+
   /* ---------------- boot ---------------- */
 
   els.player.width = SPRITE.W * SPRITE_SCALE;
   els.player.height = SPRITE.H * SPRITE_SCALE;
 
   showMenu();
+  updateOrientationPrompt();
 })();
