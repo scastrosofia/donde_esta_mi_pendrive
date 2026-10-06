@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>¿Dónde Está Mi Pendrive?</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <div id="app">
+    <button id="sound-toggle" class="sound-toggle" title="Silenciar sonido" aria-label="Silenciar sonido">🔊</button>
+    <header class="hud" id="hud">
+      <div class="hud-title">¿Dónde Está Mi Pendrive?</div>
+      <div class="hud-level" id="hud-level">Nivel 1: El Despacho</div>
+    </header>
+
+    <div class="timer-wrap" id="timer-wrap">
+      <div id="timer-bar" class="timer-bar"></div>
+      <span id="timer-text" class="timer-text">45</span>
+    </div>
+
+    <div id="game-wrap" class="game-wrap">
+      <div id="game-screen" class="game-screen">
+        <canvas id="player" width="96" height="144"></canvas>
+        <!-- scene objects are injected here by the game engine -->
+      </div>
+
+      <!-- retro screen scanlines (below the dialogue box so it stays readable) -->
+      <div class="scanlines"></div>
+
+      <!-- Pokemon-style dialogue box -->
+      <div id="dialogue" class="dialogue hidden">
+        <div class="dialogue-box">
+          <p id="dialogue-text"></p>
+          <span id="dialogue-arrow" class="dialogue-arrow">▼</span>
+        </div>
+      </div>
+
+      <!-- Win / lose overlay -->
+      <div id="overlay" class="overlay hidden">
+        <div class="overlay-panel">
+          <h2 id="overlay-title"></h2>
+          <p id="overlay-text"></p>
+          <button id="overlay-btn">REINTENTAR</button>
+        </div>
+      </div>
+
+      <!-- Pokemon-style start menu -->
+      <div id="menu" class="menu">
+        <div class="menu-title">¿DÓNDE ESTÁ MI<br>PENDRIVE?</div>
+        <div class="menu-subtitle">UNA AVENTURA CON UN PENDRIVE PERDIDO</div>
+        <div class="menu-box">
+          <div class="menu-item" data-level="1">
+            <span class="menu-cursor">▶</span>
+            <span class="menu-level">NIVEL 1</span>
+            <span class="menu-name">EL DESPACHO</span>
+            <span class="menu-play">JUGAR</span>
+          </div>
+          <div class="menu-item locked">
+            <span class="menu-lock">🔒</span>
+            <span class="menu-level">NIVEL 2</span>
+            <span class="menu-name">???</span>
+            <span class="menu-soon">PRÓXIMAMENTE</span>
+          </div>
+          <div class="menu-item locked">
+            <span class="menu-lock">🔒</span>
+            <span class="menu-level">NIVEL 3</span>
+            <span class="menu-name">???</span>
+            <span class="menu-soon">PRÓXIMAMENTE</span>
+          </div>
+        </div>
+        <div class="menu-hint">PRESIONÁ JUGAR PARA EMPEZAR</div>
+      </div>
+    </div>
+  </div>
+
+  <script src="js/levels/level1.js"></script>
+  <script src="js/sprite.js"></script>
+  <script src="js/game.js"></script>
+</body>
+</html>

@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Smoke Test</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <div id="app">
+    <button id="sound-toggle" class="sound-toggle" title="Silenciar sonido" aria-label="Silenciar sonido">🔊</button>
+    <header class="hud" id="hud">
+      <div class="hud-title">¿Dónde Está Mi Pendrive?</div>
+      <div class="hud-level" id="hud-level">Nivel 1: El Despacho</div>
+    </header>
+    <div class="timer-wrap" id="timer-wrap">
+      <div id="timer-bar" class="timer-bar"></div>
+      <span id="timer-text" class="timer-text">45</span>
+    </div>
+    <div id="game-wrap" class="game-wrap">
+      <div id="game-screen" class="game-screen">
+        <canvas id="player" width="96" height="144"></canvas>
+      </div>
+      <div class="scanlines"></div>
+      <div id="dialogue" class="dialogue hidden">
+        <div class="dialogue-box">
+          <p id="dialogue-text"></p>
+          <span id="dialogue-arrow" class="dialogue-arrow">▼</span>
+        </div>
+      </div>
+      <div id="overlay" class="overlay hidden">
+        <div class="overlay-panel">
+          <h2 id="overlay-title"></h2>
+          <p id="overlay-text"></p>
+          <button id="overlay-btn">REINTENTAR</button>
+        </div>
+      </div>
+      <div id="menu" class="menu">
+        <div class="menu-title">¿DÓNDE ESTÁ MI<br>PENDRIVE?</div>
+        <div class="menu-subtitle">UNA AVENTURA CON UN PENDRIVE PERDIDO</div>
+        <div class="menu-box">
+          <div class="menu-item" data-level="1">
+            <span class="menu-cursor">▶</span>
+            <span class="menu-level">NIVEL 1</span>
+            <span class="menu-name">EL DESPACHO</span>
+            <span class="menu-play">JUGAR</span>
+          </div>
+          <div class="menu-item locked">
+            <span class="menu-lock">🔒</span>
+            <span class="menu-level">NIVEL 2</span>
+            <span class="menu-name">???</span>
+            <span class="menu-soon">PRÓXIMAMENTE</span>
+          </div>
+          <div class="menu-item locked">
+            <span class="menu-lock">🔒</span>
+            <span class="menu-level">NIVEL 3</span>
+            <span class="menu-name">???</span>
+            <span class="menu-soon">PRÓXIMAMENTE</span>
+          </div>
+        </div>
+        <div class="menu-hint">PRESIONÁ JUGAR PARA EMPEZAR</div>
+      </div>
+    </div>
+    <div id="results">RUNNING</div>
+  </div>
+  <script src="js/levels/level1.js"></script>
+  <script src="js/sprite.js"></script>
+  <script src="js/game.js"></script>
+  <script>
+    window.onerror = function (msg) {
+      var r = document.getElementById('results');
+      r.textContent += '\nERROR: ' + msg;
+    };
+
+    function report(label, ok, extra) {
+      var r = document.getElementById('results');
+      r.textContent += '\n' + (ok ? 'PASS' : 'FAIL') + ' ' + label + (extra ? ' [' + extra + ']' : '');
+    }
+
+    setTimeout(function () {
+      // --- menu state at boot ---
+      var menu = document.getElementById('menu');
+      var hud = document.getElementById('hud');
+      var timerWrap = document.getElementById('timer-wrap');
+      // --- visual polish ---
+      var player = document.getElementById('player');
+      report('sprite grid 16x24', window.SPRITE.W === 16 && window.SPRITE.H === 24 &&
+        window.SPRITE.GRID.every(function (r) { return r.length === 16; }));
+      report('sprite has outline + shade keys', 'O' in window.SPRITE.PALETTE && 's' in window.SPRITE.PALETTE);
+      report('player canvas 96x144', player.width === 96 && player.height === 144);
+      report('scanlines present', !!document.querySelector('.scanlines'));
+      report('sound toggle present', !!document.getElementById('sound-toggle'));
+      // mute toggle flips the icon + muted class
+      var soundBtn = document.getElementById('sound-toggle');
+      soundBtn.click();
+      report('mute toggles icon', soundBtn.textContent === '\uD83D\uDD07');
+      report('mute toggles class', soundBtn.classList.contains('muted'));
+      soundBtn.click();
+      report('unmute restores icon', soundBtn.textContent === '\uD83D\uDD0A');
+      report('menu visible at boot', !menu.classList.contains('hidden'));
+      report('hud hidden at boot', hud.classList.contains('hidden'));
+      report('timer hidden at boot', timerWrap.classList.contains('hidden'));
+      report('backdrop scene rendered', document.querySelectorAll('[data-hotspot]').length === 7);
+      report('locked slots present', document.querySelectorAll('.menu-item.locked').length === 2);
+
+      // locked slot click should NOT start a game
+      var lockedBefore = menu.classList.contains('hidden');
+      document.querySelector('.menu-item.locked').click();
+      report('locked click keeps menu', !menu.classList.contains('hidden') && lockedBefore === false);
+
+      // --- PLAY -> Level 1 ---
+      document.querySelector('.menu-item[data-level="1"]').click();
+      setTimeout(function () {
+        report('menu hidden after PLAY', menu.classList.contains('hidden'));
+        report('hud shown after PLAY', !hud.classList.contains('hidden'));
+        report('timer shown after PLAY', !timerWrap.classList.contains('hidden'));
+        report('intro dialogue open', !document.getElementById('dialogue').classList.contains('hidden'));
+
+        // skip the 3 intro lines
+        var d = document.getElementById('dialogue');
+        for (var i = 0; i < 6; i++) d.click();
+
+        setTimeout(function () {
+          var timerText = document.getElementById('timer-text').textContent;
+          report('timer started', /^\d+$/.test(timerText), 'timer=' + timerText);
+
+          // --- resized / regrouped scene ---
+          var sr = document.getElementById('game-screen').getBoundingClientRect();
+          function box(id) { return document.querySelector('[data-hotspot="' + id + '"]').getBoundingClientRect(); }
+          function ratioOf(id) { var r = box(id); return r.width / r.height; }
+          function bottomPct(id) { var r = box(id); return (sr.bottom - r.bottom) / sr.height * 100; }
+          report('desk box ratio 1:1', Math.abs(ratioOf('desk') - 1) < 0.03);
+          report('bookshelf box ratio 2:3', Math.abs(ratioOf('bookshelf') - 1024 / 1536) < 0.03);
+          report('desk scaled up ~20%', box('desk').width / box('painting').width > 1.45);
+          report('bookshelf scaled up ~20%', box('bookshelf').height / box('painting').height > 1.35);
+          report('desk base at 30%', Math.abs(bottomPct('desk') - 30) < 1);
+          report('bookshelf grounded at 30%', Math.abs(bottomPct('bookshelf') - 30) < 1);
+          report('minibar base at 30%', Math.abs(bottomPct('minibar') - 30) < 1);
+          report('trash base at 30%', Math.abs(bottomPct('trash') - 30) < 1);
+          report('painting base at 60%', Math.abs(bottomPct('painting') - 60) < 1);
+          var bs = document.querySelector('[data-hotspot="bookshelf"]');
+          var mb = document.querySelector('[data-hotspot="minibar"]');
+          var bsIdx = Array.prototype.indexOf.call(bs.parentNode.children, bs);
+          var mbIdx = Array.prototype.indexOf.call(mb.parentNode.children, mb);
+          report('minibar in front of bookshelf',
+            parseInt(getComputedStyle(mb).zIndex, 10) > parseInt(getComputedStyle(bs).zIndex, 10) && bsIdx < mbIdx);
+          report('minibar overlaps bookshelf',
+            box('minibar').left < box('bookshelf').right && box('minibar').right > box('bookshelf').left &&
+            box('minibar').top < box('bookshelf').bottom);
+
+          // --- collage images ---
+          var imgs = document.querySelectorAll('.hotspot-img');
+          report('5 collage images present', imgs.length === 5);
+          var loaded = Array.prototype.every.call(imgs, function (im) {
+            return im.complete && im.naturalWidth > 0;
+          });
+          report('collage images loaded', loaded);
+
+          // --- random winner: exactly one, no visual tell before clicking ---
+          var winners = document.querySelectorAll('[data-winner="1"]');
+          report('exactly one winner chosen', winners.length === 1);
+          var winner = winners[0];
+          var winnerId = winner.getAttribute('data-hotspot');
+          report('winner is a candidate',
+            ['painting', 'desk', 'minibar', 'trash', 'bookshelf', 'plant'].indexOf(winnerId) !== -1, 'winner=' + winnerId);
+          report('no reveal before any click',
+            document.querySelectorAll('.painting-open, .desk-open, .minibar-open, .trash-open, .bookshelf-open, .plant-open').length === 0);
+
+          // decoy: the window is never a candidate -> always a penalty
+          document.querySelector('[data-hotspot="window"]').click();
+          setTimeout(function () {
+            var afterPenalty = document.getElementById('timer-text').textContent;
+            report('decoy penalty still works (45 -> 40)', afterPenalty === '40', 'timer=' + afterPenalty);
+
+            // close the decoy dialogue so the game is not busy
+            var dlg = document.getElementById('dialogue');
+            dlg.click();
+            dlg.click();
+
+            // winner: click -> reveal dialogue -> hidden safe -> click dial -> win
+            winner.click();
+            setTimeout(function () {
+              var d = document.getElementById('dialogue');
+              for (var i = 0; i < 10 && !d.classList.contains('hidden'); i++) d.click();
+              var revealOpen = winner.classList.contains('painting-open') || winner.classList.contains('desk-open') ||
+                winner.classList.contains('minibar-open') || winner.classList.contains('trash-open') ||
+                winner.classList.contains('bookshelf-open') || winner.classList.contains('plant-open');
+              report('winner reveal class applied', revealOpen, 'winner=' + winnerId);
+              winner.querySelector('.safe-dial').click();
+              setTimeout(function () {
+                var overlay = document.getElementById('overlay');
+                report('win overlay after safe click', !overlay.classList.contains('hidden'));
+                report('win title shown', document.getElementById('overlay-title').textContent === '¡LO ENCONTRASTE!');
+                report('done', true);
+              }, 100);
+            }, 100);
+          }, 100);
+        }, 100);
+      }, 100);
+    }, 200);
+  </script>
+</body>
+</html>

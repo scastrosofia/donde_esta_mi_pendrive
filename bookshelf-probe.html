@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>bookshelf bug probe</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <div id="app">
+    <button id="sound-toggle" class="sound-toggle" title="Silenciar sonido" aria-label="Silenciar sonido">🔊</button>
+    <header class="hud" id="hud">
+      <div class="hud-title">¿Dónde Está Mi Pendrive?</div>
+      <div class="hud-level" id="hud-level">Nivel 1: El Despacho</div>
+    </header>
+    <div class="timer-wrap" id="timer-wrap">
+      <div id="timer-bar" class="timer-bar"></div>
+      <span id="timer-text" class="timer-text">45</span>
+    </div>
+    <div id="game-wrap" class="game-wrap">
+      <div id="game-screen" class="game-screen">
+        <canvas id="player" width="96" height="144"></canvas>
+      </div>
+      <div class="scanlines"></div>
+      <div id="dialogue" class="dialogue hidden">
+        <div class="dialogue-box">
+          <p id="dialogue-text"></p>
+          <span id="dialogue-arrow" class="dialogue-arrow">▼</span>
+        </div>
+      </div>
+      <div id="overlay" class="overlay hidden">
+        <div class="overlay-panel">
+          <h2 id="overlay-title"></h2>
+          <p id="overlay-text"></p>
+          <button id="overlay-btn">REINTENTAR</button>
+        </div>
+      </div>
+      <div id="menu" class="menu">
+        <div class="menu-title">¿DÓNDE ESTÁ MI<br>PENDRIVE?</div>
+        <div class="menu-subtitle">UNA AVENTURA CON UN PENDRIVE PERDIDO</div>
+        <div class="menu-box">
+          <div class="menu-item" data-level="1">
+            <span class="menu-cursor">▶</span>
+            <span class="menu-level">NIVEL 1</span>
+            <span class="menu-name">EL DESPACHO</span>
+            <span class="menu-play">JUGAR</span>
+          </div>
+          <div class="menu-item locked">
+            <span class="menu-lock">🔒</span>
+            <span class="menu-level">NIVEL 2</span>
+            <span class="menu-name">???</span>
+            <span class="menu-soon">PRÓXIMAMENTE</span>
+          </div>
+          <div class="menu-item locked">
+            <span class="menu-lock">🔒</span>
+            <span class="menu-level">NIVEL 3</span>
+            <span class="menu-name">???</span>
+            <span class="menu-soon">PRÓXIMAMENTE</span>
+          </div>
+        </div>
+        <div class="menu-hint">PRESIONÁ JUGAR PARA EMPEZAR</div>
+      </div>
+    </div>
+    <div id="results">RUNNING</div>
+  </div>
+  <script src="js/levels/level1.js"></script>
+  <script src="js/sprite.js"></script>
+  <script src="js/game.js"></script>
+  <script>
+    // force winner = bookshelf (index 4 of 6 candidates): Math.random() in [4/6, 5/6)
+    Math.random = function () { return 0.7; };
+    var report = [];
+    function log(s) { report.push(s); }
+
+    setTimeout(function () {
+      document.querySelector('.menu-item[data-level="1"]').click();
+      setTimeout(function () {
+        var d = document.getElementById('dialogue');
+        for (var i = 0; i < 6; i++) d.click();
+        setTimeout(function () {
+          var bs = document.querySelector('[data-hotspot="bookshelf"]');
+          log('winner=' + (bs.getAttribute('data-winner') ? 'bookshelf' : 'NOT-BOOKSHELF'));
+          bs.click();
+          setTimeout(function () {
+            var dd = document.getElementById('dialogue');
+            for (var i = 0; i < 10 && !dd.classList.contains('hidden'); i++) dd.click();
+            setTimeout(function () {
+              log('reveal class: ' + bs.className);
+              var safe = bs.querySelector('.bookshelf-safe');
+              var r = safe.getBoundingClientRect();
+              log('safe rect: ' + JSON.stringify({ l: r.left, t: r.top, w: r.width, h: r.height }));
+              // what element would a real user click at the safe's center?
+              var cx = r.left + r.width / 2, cy = r.top + r.height / 2;
+              var hit = document.elementFromPoint(cx, cy);
+              var hitPath = [];
+              var n = hit;
+              while (n && n !== document.body) { hitPath.unshift(n.tagName + '.' + (n.className.baseVal !== undefined ? n.className.baseVal : n.className)); n = n.parentElement; }
+              log('elementFromPoint(center): ' + hitPath.join(' > '));
+              // try several points across the safe
+              for (var py = 0.15; py <= 0.85; py += 0.2) {
+                for (var px = 0.2; px <= 0.8; px += 0.3) {
+                  var h2 = document.elementFromPoint(r.left + r.width * px, r.top + r.height * py);
+                  log('  point(' + px.toFixed(1) + ',' + py.toFixed(1) + '): ' + h2.tagName + (h2.getAttribute ? ('.' + h2.getAttribute('data-hotspot') || h2.className) : ''));
+                }
+              }
+              // real click at center via dispatched mouse event
+              var ev = new MouseEvent('click', { bubbles: true, cancelable: true, clientX: cx, clientY: cy });
+              hit.dispatchEvent(ev);
+              setTimeout(function () {
+                var ov = document.getElementById('overlay');
+                log('overlay visible after real center click: ' + (!ov.classList.contains('hidden')));
+                var timerText = document.getElementById('timer-text').textContent;
+                log('timer after real click: ' + timerText);
+                log('done');
+                var r2 = document.getElementById('results');
+                r2.textContent = report.join('\n');
+              }, 200);
+            }, 200);
+          }, 150);
+        }, 100);
+      }, 100);
+    }, 300);
+  </script>
+</body>
+</html>

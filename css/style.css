@@ -1,0 +1,858 @@
+/* ============================================================
+   Where's My Pendrive? — GBA-era styling
+   Scene, HUD and dialogue are pure CSS; the room objects are photo
+   images (objects/*.png) blended in as a desaturated collage.
+   ============================================================ */
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  padding: 14px 10px 30px;
+  background: #23262e;
+  font-family: 'Press Start 2P', 'Courier New', monospace;
+  color: #e8e6df;
+}
+
+#app {
+  width: min(820px, 96vw);
+  margin: 0 auto;
+}
+
+/* ---------------- HUD ---------------- */
+
+.hud {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  padding: 4px 6px 0;
+}
+
+.hud-title {
+  font-size: 13px;
+  letter-spacing: 1px;
+  color: #f0e9c8;
+  text-shadow: 2px 2px 0 #3a3a44;
+}
+
+.hud-level {
+  font-size: 9px;
+  color: #b8b3a4;
+}
+
+/* ---------------- sound toggle ---------------- */
+
+.sound-toggle {
+  position: fixed;
+  top: 10px;
+  right: 10px;
+  z-index: 60;
+  font-size: 20px;
+  line-height: 1;
+  background: #2c303a;
+  border: 3px solid #16161c;
+  border-radius: 6px;
+  padding: 6px 9px;
+  cursor: pointer;
+  box-shadow: 0 3px 0 rgba(0, 0, 0, 0.4);
+}
+
+.sound-toggle:hover {
+  background: #3a3f4c;
+}
+
+.sound-toggle:active {
+  transform: translateY(2px);
+  box-shadow: 0 1px 0 rgba(0, 0, 0, 0.4);
+}
+
+.sound-toggle.muted {
+  opacity: 0.7;
+  filter: grayscale(1);
+}
+
+/* ---------------- timer bar ---------------- */
+
+.timer-wrap {
+  position: relative;
+  margin: 10px 0;
+  height: 20px;
+  background: #e8e4d8;
+  border: 3px solid #16161c;
+  border-radius: 4px;
+  box-shadow: 0 3px 0 rgba(0, 0, 0, 0.35);
+}
+
+.timer-bar {
+  height: 100%;
+  width: 100%;
+  background: #4caf50;
+  transition: width 0.15s linear, background-color 0.4s;
+}
+
+.timer-bar.yellow {
+  background: #f0b429;
+}
+
+.timer-bar.red {
+  background: #d63434;
+}
+
+.timer-text {
+  position: absolute;
+  top: 50%;
+  right: 8px;
+  transform: translateY(-50%);
+  font-size: 11px;
+  color: #16161c;
+  background: rgba(255, 255, 255, 0.75);
+  border-radius: 3px;
+  padding: 0 6px;
+  line-height: 15px;
+}
+
+/* ---------------- game screen (the room) ---------------- */
+
+.game-wrap {
+  position: relative;
+}
+
+.game-screen {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  border: 4px solid #14141a;
+  border-radius: 4px;
+  overflow: hidden;
+  background: #a8d4b6;
+  user-select: none;
+}
+
+.game-screen.shaking {
+  animation: shake 0.12s linear infinite;
+}
+
+@keyframes shake {
+  0%   { transform: translate(0, 0); }
+  25%  { transform: translate(-3px, 2px); }
+  50%  { transform: translate(3px, -2px); }
+  75%  { transform: translate(-2px, -3px); }
+  100% { transform: translate(0, 0); }
+}
+
+/* --- wall & floor --- */
+
+.wall {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 70%;
+  background:
+    /* fine plaster dots */
+    radial-gradient(rgba(70, 105, 90, 0.09) 1px, transparent 1.5px) 0 0 / 13px 13px,
+    /* faint panel seams */
+    repeating-linear-gradient(90deg, transparent 0 96px, rgba(0, 0, 0, 0.035) 96px 97px),
+    /* base with darker shading toward the lower edge */
+    linear-gradient(#dbeee0, #b8d8bf);
+}
+
+.floor {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 30%;
+  background:
+    /* soft light falling from the window onto the floor */
+    linear-gradient(115deg, rgba(255, 250, 214, 0.42) 0%, rgba(255, 250, 214, 0.1) 32%, rgba(255, 250, 214, 0) 58%),
+    /* scattered grain lines at irregular heights */
+    linear-gradient(180deg,
+      transparent 0 9%,   rgba(92, 69, 38, 0.42) 9% 9.4%,   transparent 9.4% 26%,
+      rgba(92, 69, 38, 0.3) 26% 26.3%, transparent 26.3% 47%,
+      rgba(92, 69, 38, 0.38) 47% 47.5%, transparent 47.5% 71%,
+      rgba(92, 69, 38, 0.28) 71% 71.4%, transparent 71.4% 90%,
+      rgba(92, 69, 38, 0.4) 90% 90.4%, transparent 90.4%),
+    /* planks: alternating tones with dark seams, one varied cycle across the floor */
+    linear-gradient(90deg,
+      #a9773f 0 12.6%,    rgba(46, 30, 14, 0.55) 12.6% 13%,
+      #8f6134 13% 26.6%,  rgba(46, 30, 14, 0.55) 26.6% 27%,
+      #7a5230 27% 38.6%,  rgba(46, 30, 14, 0.55) 38.6% 39%,
+      #8f6134 39% 55.6%,  rgba(46, 30, 14, 0.55) 55.6% 56%,
+      #a9773f 56% 69.6%,  rgba(46, 30, 14, 0.55) 69.6% 70%,
+      #7a5230 70% 84.6%,  rgba(46, 30, 14, 0.55) 84.6% 85%,
+      #8f6134 85% 100%);
+}
+
+.floor::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 8px;
+  background: #5c4526;
+}
+
+/* ---------------- objects ---------------- */
+
+.hotspot {
+  cursor: pointer;
+  /* cast shadow under the furniture, light from the upper left */
+  filter: drop-shadow(4px 6px 0 rgba(30, 22, 12, 0.28));
+}
+
+.hotspot:hover,
+.hotspot:active {
+  filter: brightness(1.1) drop-shadow(4px 6px 0 rgba(30, 22, 12, 0.28));
+  /* short sharp jitter on hover / tap; the transform only shifts the visual,
+     hit-testing follows it, so clicks keep registering during/after */
+  animation: hotspot-shake 0.3s steps(1, end) 1;
+}
+
+@keyframes hotspot-shake {
+  0%, 100% { transform: translateX(0); }
+  25%      { transform: translateX(-2px); }
+  50%      { transform: translateX(2px); }
+  75%      { transform: translateX(-1px); }
+}
+
+/* photo-collage objects: the PNG fills its hotspot box exactly (each box is
+   sized to its image's aspect ratio), desaturated to blend into the scene */
+.hotspot-img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+  filter: grayscale(0.9) contrast(1.08);
+}
+
+/* After a reveal animation, the base image must not intercept clicks so
+   the safe element underneath can be targeted by e.target.closest(). */
+.painting-open .hotspot-img,
+.bookshelf-open .hotspot-img,
+.minibar-open .hotspot-img,
+.desk-open .hotspot-img,
+.trash-open .hotspot-img,
+.plant-open .hotspot-img {
+  pointer-events: none;
+}
+
+/* --- window (PNG photo-collage asset) --- */
+
+.window {
+  position: absolute;
+  left: 4%;
+  top: 8%;
+  width: 22%;
+  height: 40%;
+  z-index: 3;
+}
+
+/* --- painting (hides a safe) --- */
+
+.painting {
+  position: absolute;
+  left: 41.25%;
+  top: 4%;
+  width: 13.5%;
+  height: 36%;
+  z-index: 4;
+  transform-style: preserve-3d;
+  perspective: 600px;
+}
+
+.painting .hotspot-img {
+  transform-origin: left center;
+  transition: transform 0.5s ease;
+  z-index: 2;
+}
+
+.painting.painting-open .hotspot-img {
+  transform: rotateY(70deg);
+}
+
+/* the safe hidden behind the painting */
+.safe-body {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  display: none;
+  background: linear-gradient(#7d828a, #5c6066);
+  border: 5px solid #33363c;
+  border-radius: 8px;
+  box-shadow: inset 0 0 0 3px #45484f;
+}
+
+.painting.painting-open .safe-body {
+  display: block;
+}
+
+.safe-dial {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 32%;
+  aspect-ratio: 1;
+  background: #c9c4b4;
+  border: 3px solid #33363c;
+  border-radius: 50%;
+}
+
+.safe-dial::after {
+  content: '';
+  position: absolute;
+  top: 14%;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 5px;
+  height: 30%;
+  background: #33363c;
+}
+
+.safe-handle {
+  position: absolute;
+  right: 14%;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 10%;
+  height: 34%;
+  background: #2f3237;
+  border-radius: 4px;
+}
+
+/* --- bookshelf --- */
+
+.bookshelf {
+  position: absolute;
+  left: 78.05%;
+  bottom: 30%;
+  width: 18.9%;
+  height: 50.4%;
+  z-index: 3;
+  transform-style: preserve-3d;
+  perspective: 600px;
+}
+
+/* a books section that swings out to reveal the hidden safe (winner only) */
+.bookshelf-panel {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 42%;
+  z-index: 3;
+  background: #7a4a26;
+  border: 4px solid #4d3018;
+  border-radius: 3px;
+  box-shadow: inset 0 0 0 3px #5d3719;
+  transform-origin: left center;
+  transition: transform 0.5s ease;
+}
+
+.sbook {
+  position: absolute;
+  top: 14%;
+  bottom: 14%;
+  width: 15%;
+}
+
+.sbook-1 { left: 9%;  background: #c0392b; }
+.sbook-2 { left: 28%; background: #2e86c1; }
+.sbook-3 { left: 47%; background: #e67e22; }
+
+.bookshelf-safe {
+  position: absolute;
+  left: 22%;
+  right: 22%;
+  bottom: 8%;
+  height: 26%;
+  z-index: 2;
+  display: none;
+  background: linear-gradient(#7d828a, #5c6066);
+  border: 3px solid #33363c;
+  border-radius: 6px;
+  box-shadow: inset 0 0 0 2px #45484f;
+}
+
+.bookshelf.bookshelf-open .bookshelf-panel {
+  transform: rotateY(75deg);
+}
+
+.bookshelf.bookshelf-open .bookshelf-safe {
+  display: block;
+}
+
+/* --- mini bar --- */
+
+.minibar {
+  position: absolute;
+  left: 79.8125%;
+  bottom: 30%;
+  width: 12.375%;
+  height: 22%;
+  /* in front of the bookshelf, overlapping its right edge (layered depth) */
+  z-index: 4;
+}
+
+/* cabinet panel that slides aside to reveal the hidden safe (winner only) */
+.minibar-panel {
+  position: absolute;
+  left: 9%;
+  right: 9%;
+  top: 12%;
+  bottom: 12%;
+  z-index: 3;
+  background: linear-gradient(90deg, #6b3f1d 0 44%, #3c2410 44% 52%, #8a5a2e 52% 100%);
+  border: 3px solid #3c2410;
+  border-radius: 4px;
+  box-shadow: inset 0 0 0 2px #a9743f;
+  transition: transform 0.45s ease;
+}
+
+.minibar-handle {
+  position: absolute;
+  top: 50%;
+  right: 12%;
+  transform: translateY(-50%);
+  width: 8%;
+  height: 30%;
+  background: #3c2410;
+  border-radius: 2px;
+}
+
+.minibar-safe {
+  position: absolute;
+  left: 20%;
+  right: 20%;
+  top: 26%;
+  height: 48%;
+  z-index: 2;
+  display: none;
+  background: linear-gradient(#7d828a, #5c6066);
+  border: 3px solid #33363c;
+  border-radius: 6px;
+  box-shadow: inset 0 0 0 2px #45484f;
+}
+
+.minibar.minibar-open .minibar-panel {
+  transform: translateX(135%);
+}
+
+.minibar.minibar-open .minibar-safe {
+  display: block;
+}
+
+/* --- plant (PNG photo-collage asset) --- */
+
+.plant {
+  position: absolute;
+  left: 3%;
+  bottom: 30%;
+  width: 12%;
+  height: 26%;
+  z-index: 4;
+  transform-style: preserve-3d;
+  perspective: 600px;
+}
+
+.plant .hotspot-img {
+  transform-origin: center bottom;
+  transition: transform 0.5s ease;
+  z-index: 2;
+}
+
+.plant.plant-open .hotspot-img {
+  transform: rotate(34deg) translateY(-18%);
+}
+
+/* buried safe revealed when the pot tips over (winner only) */
+.plant-safe {
+  position: absolute;
+  left: 24%;
+  right: 24%;
+  bottom: 2%;
+  height: 22%;
+  z-index: 1;
+  display: none;
+  background: linear-gradient(#7d828a, #5c6066);
+  border: 3px solid #33363c;
+  border-radius: 6px;
+  box-shadow: inset 0 0 0 2px #45484f;
+}
+
+.plant.plant-open .plant-safe {
+  display: block;
+}
+
+/* --- desk --- */
+
+.desk {
+  position: absolute;
+  left: 24.875%;
+  bottom: 30%;
+  width: 20.25%;
+  height: 36%;
+  z-index: 4;
+}
+
+/* drawer that slides open to reveal the hidden safe (winner only)
+   Hidden by default — the desk PNG is the closed state.
+   Only shown briefly during the desk-open reveal animation. */
+.desk-drawer {
+  position: absolute;
+  left: 14%;
+  right: 14%;
+  top: 44%;
+  height: 20%;
+  z-index: 3;
+  background: linear-gradient(#b07a44, #8a5a2e);
+  border: 3px solid #4d3018;
+  border-radius: 3px;
+  box-shadow: inset 0 0 0 2px #c98a52, 0 3px 0 rgba(0, 0, 0, 0.3);
+  transition: transform 0.45s ease;
+  display: none;
+}
+
+.desk-handle {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 34%;
+  height: 16%;
+  background: #4d3018;
+  border-radius: 2px;
+}
+
+.desk-safe {
+  position: absolute;
+  left: 20%;
+  right: 20%;
+  top: 38%;
+  height: 26%;
+  z-index: 2;
+  display: none;
+  background: linear-gradient(#7d828a, #5c6066);
+  border: 3px solid #33363c;
+  border-radius: 6px;
+  box-shadow: inset 0 0 0 2px #45484f;
+}
+
+.desk.desk-open .desk-safe {
+  display: block;
+}
+
+/* --- trash bin --- */
+
+.trash {
+  position: absolute;
+  left: 68.5%;
+  bottom: 30%;
+  width: 9%;
+  height: 16%;
+  z-index: 4;
+}
+
+/* papers that fall aside to reveal the hidden safe (winner only) */
+.trash-paper {
+  position: absolute;
+  width: 26%;
+  height: 15%;
+  z-index: 3;
+  background: #e8e4d8;
+  border: 2px solid #b8b3a4;
+  border-radius: 2px;
+  box-shadow: 0 2px 0 rgba(0, 0, 0, 0.25);
+  transition: transform 0.5s ease, opacity 0.5s ease;
+}
+
+.paper-a { left: 13%; top: 10%; transform: rotate(-10deg); }
+.paper-b { right: 12%; top: 5%;  transform: rotate(12deg); }
+
+.trash-safe {
+  position: absolute;
+  left: 14%;
+  right: 14%;
+  top: 22%;
+  height: 46%;
+  z-index: 2;
+  display: none;
+  background: linear-gradient(#7d828a, #5c6066);
+  border: 3px solid #33363c;
+  border-radius: 6px;
+  box-shadow: inset 0 0 0 2px #45484f;
+}
+
+.trash.trash-open .trash-paper {
+  transform: translateY(400%) rotate(30deg);
+  opacity: 0;
+}
+
+.trash.trash-open .trash-safe {
+  display: block;
+}
+
+/* ---------------- player character ---------------- */
+
+#player {
+  position: absolute;
+  z-index: 6;
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+  filter: drop-shadow(0 4px 0 rgba(0, 0, 0, 0.25));
+  pointer-events: none;
+}
+
+/* ---------------- dialogue box ---------------- */
+
+.dialogue {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 20;
+  padding: 10px;
+}
+
+.dialogue-box {
+  position: relative;
+  background: #eef9f2;
+  /* double border: thick black outside, thin white inside */
+  border: 4px solid #000000;
+  border-radius: 10px;
+  padding: 10px 18px;
+  min-height: 64px;
+  box-shadow: inset 0 0 0 2px #ffffff, 0 4px 0 rgba(0, 0, 0, 0.3);
+  cursor: pointer;
+}
+
+#dialogue-text {
+  margin: 0;
+  font-family: 'VT323', 'Courier New', monospace;
+  font-size: 21px;
+  line-height: 1.2;
+  letter-spacing: 0.5px;
+  color: #20202a;
+}
+
+.dialogue-arrow {
+  position: absolute;
+  right: 16px;
+  bottom: 8px;
+  font-family: 'VT323', 'Courier New', monospace;
+  font-size: 16px;
+  color: #20202a;
+  opacity: 0;
+}
+
+.dialogue-arrow.visible {
+  animation: blink 0.8s steps(1) infinite;
+}
+
+@keyframes blink {
+  0%, 55% { opacity: 1; }
+  56%, 100% { opacity: 0; }
+}
+
+/* ---------------- win / lose overlay ---------------- */
+
+.overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 30;
+  background: rgba(10, 10, 14, 0.82);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.overlay-panel {
+  background: #e8e4d8;
+  border: 5px solid #16161c;
+  border-radius: 8px;
+  padding: 26px 40px;
+  text-align: center;
+  box-shadow: 0 6px 0 rgba(0, 0, 0, 0.35);
+  max-width: 82%;
+}
+
+.overlay-panel h2 {
+  margin: 0 0 12px;
+  font-size: 16px;
+  letter-spacing: 1px;
+  color: #b3231c;
+}
+
+.overlay-panel h2.win {
+  color: #1e7a34;
+}
+
+.overlay-panel p {
+  margin: 0 0 20px;
+  font-family: 'VT323', 'Courier New', monospace;
+  font-size: 20px;
+  line-height: 1.3;
+  color: #20202a;
+  white-space: pre-line;
+}
+
+#overlay-btn {
+  font-size: 12px;
+  letter-spacing: 1px;
+  color: #16161c;
+  background: #c8c4b4;
+  border: 4px solid #16161c;
+  border-radius: 4px;
+  padding: 10px 28px;
+  cursor: pointer;
+  box-shadow: 0 4px 0 #16161c;
+}
+
+#overlay-btn:active {
+  transform: translateY(3px);
+  box-shadow: 0 1px 0 #16161c;
+}
+
+/* ---------------- start menu ---------------- */
+
+.menu {
+  position: absolute;
+  inset: 0;
+  z-index: 35;
+  background: linear-gradient(rgba(10, 14, 22, 0.78), rgba(10, 14, 22, 0.9));
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  text-align: center;
+}
+
+.menu-title {
+  font-size: 26px;
+  color: #ffd23f;
+  letter-spacing: 3px;
+  line-height: 1.15;
+  text-shadow: 3px 3px 0 #16161c, 6px 6px 0 rgba(0, 0, 0, 0.45);
+  transform: skewX(-4deg);
+}
+
+.menu-subtitle {
+  font-size: 8px;
+  letter-spacing: 3px;
+  color: #cfc9b8;
+}
+
+.menu-box {
+  background: #f8f4e8;
+  border: 4px solid #16161c;
+  border-radius: 8px;
+  box-shadow: 0 5px 0 rgba(0, 0, 0, 0.4);
+  padding: 10px 14px;
+  width: min(420px, 86%);
+  text-align: left;
+}
+
+.menu-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 10px;
+  border-radius: 4px;
+  cursor: pointer;
+  color: #20202a;
+}
+
+.menu-item:hover {
+  background: rgba(0, 0, 0, 0.07);
+}
+
+.menu-cursor {
+  color: #d63434;
+  animation: blink 0.8s steps(1) infinite;
+}
+
+.menu-level {
+  font-size: 10px;
+}
+
+.menu-name {
+  font-size: 10px;
+  color: #5a5a66;
+}
+
+.menu-play {
+  margin-left: auto;
+  background: #c8c4b4;
+  border: 3px solid #16161c;
+  border-radius: 4px;
+  padding: 6px 12px;
+  font-size: 10px;
+  letter-spacing: 1px;
+  box-shadow: 0 3px 0 #16161c;
+}
+
+.menu-play:active {
+  transform: translateY(2px);
+  box-shadow: 0 1px 0 #16161c;
+}
+
+.menu-item.locked {
+  cursor: not-allowed;
+  opacity: 0.72;
+}
+
+.menu-item.locked .menu-lock {
+  font-size: 13px;
+}
+
+.menu-item.locked .menu-soon {
+  margin-left: auto;
+  font-family: 'VT323', 'Courier New', monospace;
+  font-size: 14px;
+  letter-spacing: 1px;
+  color: #8a8577;
+  border: 2px solid #8a8577;
+  border-radius: 3px;
+  padding: 1px 8px;
+}
+
+.menu-item.no {
+  animation: menuNo 0.3s;
+}
+
+@keyframes menuNo {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-4px); }
+  50% { transform: translateX(4px); }
+  75% { transform: translateX(-3px); }
+}
+
+.menu-hint {
+  font-size: 9px;
+  letter-spacing: 2px;
+  color: #f0e9c8;
+  animation: blink 1.2s steps(1) infinite;
+}
+
+/* ---------------- retro scanlines ---------------- */
+
+.scanlines {
+  position: absolute;
+  inset: 0;
+  z-index: 15;
+  pointer-events: none;
+  /* 1px line every 2px, very low opacity */
+  background: repeating-linear-gradient(0deg, rgba(10, 12, 18, 0.07) 0 1px, transparent 1px 2px);
+}
+
+/* ---------------- utilities ---------------- */
+
+.hidden {
+  display: none !important;
+}
